@@ -12,11 +12,10 @@ export const CodeBlock = ({ code, language = "bash" }: CodeBlockProps) => {
     <SyntaxHighlighter
       language={language}
       style={atomDark}
-      className="!bg-muted"
+      className="bg-muted"
       customStyle={{
         padding: "1rem",
         borderRadius: "0.375rem",
-        backgroundColor: "#1f2937",
         overflowX: "auto",
         fontSize: "0.875rem",
       }}

@@ -1,7 +1,6 @@
 import { Hero } from "@/components/Hero";
 import { DemoSection } from "@/components/DemoSection";
 import { ApiUsageSection } from "@/components/ApiUsageSection";
-import { Footer } from "@/components/Footer";
 
 const HomePage = () => {
   return (
@@ -9,7 +8,6 @@ const HomePage = () => {
       <Hero />
       <DemoSection />
       <ApiUsageSection />
-      <Footer />
     </div>
   );
 };

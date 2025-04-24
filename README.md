@@ -9,7 +9,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/lorenzopalaia/stackhound">
-    <h1>🐶</h1>
+    <img src="repo_assets/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h3 align="center">StackHound</h3>

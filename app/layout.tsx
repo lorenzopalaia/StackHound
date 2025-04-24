@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description:
     "Analyze public GitHub repositories with StackHound to quickly identify the programming languages, frameworks, and tools used in their tech stack.",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/favicon.png",
   },
   alternates: {
     canonical: baseUrl,

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge } from "./ui/badge";
+import { Button } from "@/components/ui/button";
 import React from "react";
 
 const GitHub = () => (
@@ -19,14 +19,15 @@ export const Header = () => {
     <header className="sticky top-0 z-10 bg-background container mx-auto p-4 flex items-center justify-between">
       <h1 className="text-2xl font-bold">🐶 StackHound</h1>
       <nav>
-        <Link href="https://github.com/lorenzopalaia/stackhound">
-          <Badge
-            variant="default"
-            className="rounded-full text-lg flex items-center gap-2"
-          >
+        <Link
+          href="https://github.com/lorenzopalaia/stackhound"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button className="rounded-full text-lg flex items-center gap-2 cursor-pointer">
             <span>GitHub</span>
             <GitHub />
-          </Badge>
+          </Button>
         </Link>
       </nav>
     </header>

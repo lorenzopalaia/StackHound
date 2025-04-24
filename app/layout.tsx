@@ -16,11 +16,14 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "StackHound - Discover the Tech Stack of Any GitHub Repository",
+  title: "StackHound - GitHub Tech Stack Analyzer",
   description:
     "Analyze public GitHub repositories with StackHound to quickly identify the programming languages, frameworks, and tools used in their tech stack.",
   icons: {
     icon: "/favicon.svg",
+  },
+  alternates: {
+    canonical: baseUrl,
   },
   openGraph: {
     title: "StackHound - Discover the Tech Stack of Any GitHub Repository",

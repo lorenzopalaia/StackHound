@@ -1,5 +1,5 @@
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism"; // Scegli lo stile che preferisci
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeBlockProps {
   code: string;
@@ -7,30 +7,23 @@ interface CodeBlockProps {
   className?: string;
 }
 
-export const CodeBlock = ({
-  code,
-  language = "bash",
-  className,
-}: CodeBlockProps) => {
+export const CodeBlock = ({ code, language = "bash" }: CodeBlockProps) => {
   return (
     <SyntaxHighlighter
       language={language}
-      style={atomDark} // Applica lo stile importato
-      className={className} // Applica la classe passata
+      style={atomDark}
+      className="!bg-muted"
       customStyle={{
         padding: "1rem",
-        borderRadius: "0.375rem", // Equivalente a rounded-md di Tailwind
-        backgroundColor: "#1f2937", // Un colore di sfondo scuro, puoi personalizzarlo
+        borderRadius: "0.375rem",
+        backgroundColor: "#1f2937",
         overflowX: "auto",
-        fontSize: "0.875rem", // Equivalente a text-sm di Tailwind
+        fontSize: "0.875rem",
       }}
-      showLineNumbers={false} // Opzionale: mostra i numeri di riga
-      wrapLines={true} // Opzionale: va a capo automaticamente
+      showLineNumbers={false}
+      wrapLines={true}
     >
       {code.trim()}
     </SyntaxHighlighter>
   );
 };
-
-// Nota: Puoi esplorare altri stili disponibili in 'react-syntax-highlighter/dist/esm/styles/prism'
-// o 'react-syntax-highlighter/dist/esm/styles/hljs'

@@ -27,7 +27,7 @@ abstract class TechStackParser {
     repo: string,
     manifest?: string, // File name
     dependencies?: DependencyMap,
-    manifestPath?: string // Optional path like 'src/project/'
+    manifestPath?: string, // Optional path like 'src/project/'
   ) {
     this.username = username;
     this.repo = repo;
@@ -60,7 +60,7 @@ abstract class TechStackParser {
       // Try 'master' branch as a fallback if 'main' fails
       if (branch === "main") {
         console.warn(
-          `Failed to fetch from 'main' branch (${response.status}) for ${fullManifestPath}, trying 'master'...`
+          `Failed to fetch from 'main' branch (${response.status}) for ${fullManifestPath}, trying 'master'...`,
         );
         const masterUrl = `https://raw.githubusercontent.com/${this.username}/${this.repo}/master/${fullManifestPath}`;
         console.log(`Fetching: ${masterUrl}`);
@@ -70,7 +70,7 @@ abstract class TechStackParser {
         }
         // Throw original error if master also fails
         throw new Error(
-          `HTTP error! status: ${response.status} for ${url} (and master branch failed with status ${masterResponse.status})`
+          `HTTP error! status: ${response.status} for ${url} (and master branch failed with status ${masterResponse.status})`,
         );
       }
       throw new Error(`HTTP error! status: ${response.status} for ${url}`);
@@ -84,7 +84,7 @@ abstract class TechStackParser {
     // Skip execution if manifest is not defined for this parser instance
     if (!this.manifest) {
       console.log(
-        `Skipping parser ${this.constructor.name} for ${this.username}/${this.repo} as manifest is not specified.`
+        `Skipping parser ${this.constructor.name} for ${this.username}/${this.repo} as manifest is not specified.`,
       );
       return new Set<string>();
     }
@@ -96,12 +96,12 @@ abstract class TechStackParser {
       // Log specific fetch errors, but don't crash the whole process
       if (error instanceof Error && error.message.startsWith("HTTP error!")) {
         console.error(
-          `Error fetching ${this.manifestPath}${this.manifest} for ${this.username}/${this.repo}: ${error.message}`
+          `Error fetching ${this.manifestPath}${this.manifest} for ${this.username}/${this.repo}: ${error.message}`,
         );
       } else {
         console.error(
           `Unexpected error getting dependencies for ${this.username}/${this.repo} using ${this.constructor.name}:`,
-          error
+          error,
         );
       }
       // Return empty set on error to avoid breaking subsequent operations
@@ -113,7 +113,7 @@ abstract class TechStackParser {
   protected filter(deps: Iterable<string>): void {
     if (!this.dependencyMap) {
       console.warn(
-        `Warning: No dependency map provided for ${this.constructor.name}.`
+        `Warning: No dependency map provided for ${this.constructor.name}.`,
       );
       return;
     }
@@ -131,7 +131,7 @@ abstract class TechStackParser {
     }
     if (addedTech.size > 0) {
       console.log(
-        `[${this.constructor.name}] Detected in ${this.manifestPath}${this.manifest}: ${Array.from(addedTech).join(", ")}`
+        `[${this.constructor.name}] Detected in ${this.manifestPath}${this.manifest}: ${Array.from(addedTech).join(", ")}`,
       );
     }
   }
@@ -155,12 +155,12 @@ class NodeParser extends TechStackParser {
     } catch (error) {
       if (error instanceof SyntaxError) {
         console.error(
-          `Error decoding JSON from ${this.manifestPath}${this.manifest} for ${this.username}/${this.repo}: ${error.message}`
+          `Error decoding JSON from ${this.manifestPath}${this.manifest} for ${this.username}/${this.repo}: ${error.message}`,
         );
       } else {
         console.error(
           `Unexpected error during Node parsing for ${this.username}/${this.repo}:`,
-          error
+          error,
         );
       }
     }
@@ -183,7 +183,7 @@ class PythonParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Python parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -216,7 +216,7 @@ class JavaParser extends TechStackParser {
   protected parse(content: string): void {
     // WARNING: Regex-based XML parsing is fragile. A proper XML parser is recommended for robustness.
     console.warn(
-      `[JavaParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. Results may be inaccurate for complex files.`
+      `[JavaParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. Results may be inaccurate for complex files.`,
     );
     try {
       // Regex to find <artifactId> within <dependency> blocks (simplistic)
@@ -231,7 +231,7 @@ class JavaParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Java parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -249,7 +249,7 @@ class DotNetParser extends TechStackParser {
     // WARNING: Regex-based XML parsing is fragile. A proper XML parser is recommended.
     // This parser is limited to packages.config and will NOT detect dependencies in modern .csproj files.
     console.warn(
-      `[DotNetParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. Only supports legacy packages.config, not .csproj. Results may be incomplete.`
+      `[DotNetParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. Only supports legacy packages.config, not .csproj. Results may be incomplete.`,
     );
     try {
       // Regex for packages.config: extracts 'id' attribute from <package> tag
@@ -263,7 +263,7 @@ class DotNetParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during .NET (packages.config) parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -278,7 +278,7 @@ class RubyParser extends TechStackParser {
   protected parse(content: string): void {
     // WARNING: Regex-based Ruby code parsing can be unreliable due to Ruby's flexible syntax.
     console.warn(
-      `[RubyParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. May not capture all dependencies in complex Gemfiles.`
+      `[RubyParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. May not capture all dependencies in complex Gemfiles.`,
     );
     try {
       // Matches gem 'name' or gem "name", ignoring comments
@@ -292,7 +292,7 @@ class RubyParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Ruby parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -315,12 +315,12 @@ class PHPParser extends TechStackParser {
     } catch (error) {
       if (error instanceof SyntaxError) {
         console.error(
-          `Error decoding JSON from ${this.manifestPath}${this.manifest} for ${this.username}/${this.repo}: ${error.message}`
+          `Error decoding JSON from ${this.manifestPath}${this.manifest} for ${this.username}/${this.repo}: ${error.message}`,
         );
       } else {
         console.error(
           `Unexpected error during PHP parsing for ${this.username}/${this.repo}:`,
-          error
+          error,
         );
       }
     }
@@ -346,7 +346,7 @@ class GoParser extends TechStackParser {
       // Remove block comments first to simplify line matching
       const contentWithoutBlockComments = content.replace(
         /\/\*[\s\S]*?\*\//g,
-        ""
+        "",
       );
 
       let match;
@@ -360,7 +360,7 @@ class GoParser extends TechStackParser {
             .lastIndexOf("\n") + 1;
         const line = contentWithoutBlockComments.substring(
           lineStart,
-          match.index + match[0].length
+          match.index + match[0].length,
         );
         // Basic check to avoid matching module names outside require directives/blocks
         // and exclude the module declaration itself ('module my/module/name')
@@ -377,7 +377,7 @@ class GoParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Go parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -392,7 +392,7 @@ class RustParser extends TechStackParser {
     // WARNING: Regex-based TOML parsing is highly unreliable due to TOML's complex syntax (tables, inline tables, arrays).
     // A proper TOML parser library is strongly recommended for accurate results.
     console.warn(
-      `[RustParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. TOML parsing with regex is fragile and may yield inaccurate results.`
+      `[RustParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. TOML parsing with regex is fragile and may yield inaccurate results.`,
     );
     try {
       const dependencies = new Set<string>(); // Use Set for uniqueness
@@ -465,7 +465,7 @@ class RustParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Rust parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -480,7 +480,7 @@ class DartParser extends TechStackParser {
     // WARNING: Regex/line-based YAML parsing is highly unreliable due to significant whitespace and complex structures.
     // A proper YAML parser library is strongly recommended for accurate results.
     console.warn(
-      `[DartParser] Warning: Using line-based parsing for ${this.manifestPath}${this.manifest}. YAML parsing without a library is fragile and may yield inaccurate results.`
+      `[DartParser] Warning: Using line-based parsing for ${this.manifestPath}${this.manifest}. YAML parsing without a library is fragile and may yield inaccurate results.`,
     );
     try {
       const dependencies = new Set<string>(); // Use Set for uniqueness
@@ -533,7 +533,7 @@ class DartParser extends TechStackParser {
           if (!this.techStack.has(tech)) {
             this.techStack.add(tech);
             console.log(
-              `[DartParser] Detected in ${this.manifestPath}${this.manifest}: Flutter (via sdk: flutter)`
+              `[DartParser] Detected in ${this.manifestPath}${this.manifest}: Flutter (via sdk: flutter)`,
             );
           }
         }
@@ -543,7 +543,7 @@ class DartParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Dart parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -558,7 +558,7 @@ class ElixirParser extends TechStackParser {
     // WARNING: Regex-based parsing of Elixir source code is extremely fragile and likely to fail.
     // A proper AST parser or using `mix deps` would be far more reliable.
     console.warn(
-      `[ElixirParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. Elixir code parsing with regex is highly unreliable.`
+      `[ElixirParser] Warning: Using regex to parse ${this.manifestPath}${this.manifest}. Elixir code parsing with regex is highly unreliable.`,
     );
     try {
       const dependencies = new Set<string>(); // Use Set for uniqueness
@@ -566,7 +566,7 @@ class ElixirParser extends TechStackParser {
       // Try to find the `deps` function definition more reliably
       // Looks for `defp deps do` or `def deps do` followed by `[` ... `]`
       const depsFunctionMatch = content.match(
-        /defp?\s+deps\s+do\s*(\[[\s\S]*?\])\s*end/
+        /defp?\s+deps\s+do\s*(\[[\s\S]*?\])\s*end/,
       );
 
       let contentToSearch = "";
@@ -574,7 +574,7 @@ class ElixirParser extends TechStackParser {
         contentToSearch = depsFunctionMatch[1]; // Search within the deps list
       } else {
         console.warn(
-          `[ElixirParser] Could not reliably find deps function in ${this.manifestPath}${this.manifest}, falling back to searching the entire file (less accurate).`
+          `[ElixirParser] Could not reliably find deps function in ${this.manifestPath}${this.manifest}, falling back to searching the entire file (less accurate).`,
         );
         contentToSearch = content; // Fallback to whole file
       }
@@ -591,7 +591,7 @@ class ElixirParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Elixir parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }
@@ -624,7 +624,7 @@ class DockerParser extends TechStackParser {
     } catch (error) {
       console.error(
         `Unexpected error during Docker parsing for ${this.username}/${this.repo}:`,
-        error
+        error,
       );
     }
   }

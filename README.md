@@ -47,5 +47,5 @@ You can also query the StackHound API directly.
 **Example (cURL):**
 
 ```bash
-curl "YOUR_APP_URL/api/analyze?username=vercel&repo=next.js"
+curl "https://stackhound.vercel.app/api/analyze?username=vercel&repo=next.js"
 ```

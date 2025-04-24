@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "npm run format && next build && npm run sitemap",
     "start": "next start",
     "lint": "next lint",
     "knip": "knip",
-    "format": "prettier --write . --loglevel warn"
+    "format": "prettier --write . --log-level warn",
+    "sitemap": "next-sitemap"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.4",
@@ -18,6 +19,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.503.0",
     "next": "15.3.1",
+    "next-sitemap": "^4.2.3",
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

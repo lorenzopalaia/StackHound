@@ -12,13 +12,44 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "StackHound",
+  metadataBase: new URL(baseUrl),
+  title: "StackHound - Discover the Tech Stack of Any GitHub Repository",
   description:
-    "Discover the tech stack of any GitHub repository with StackHound.",
+    "Analyze public GitHub repositories with StackHound to quickly identify the programming languages, frameworks, and tools used in their tech stack.",
   icons: {
     icon: "/favicon.svg",
   },
+  openGraph: {
+    title: "StackHound - Discover the Tech Stack of Any GitHub Repository",
+    description:
+      "Analyze public GitHub repositories with StackHound to quickly identify the programming languages, frameworks, and tools used.",
+    url: baseUrl,
+    siteName: "StackHound",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StackHound - Discover the Tech Stack of Any GitHub Repository",
+    description:
+      "Analyze public GitHub repositories with StackHound to quickly identify the programming languages, frameworks, and tools used.",
+    creator: "@lorenzo_palaia",
+  },
+  keywords: [
+    "GitHub",
+    "repository",
+    "tech stack",
+    "analyzer",
+    "detector",
+    "dependencies",
+    "Next.js",
+    "React",
+    "TypeScript",
+    "developer tools",
+  ],
 };
 
 export default function RootLayout({

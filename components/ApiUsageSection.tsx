@@ -21,7 +21,7 @@ export const ApiUsageSection = () => {
 
   useEffect(() => {
     setApiUrlBase(
-      `${window.location.origin}/api/analyze?username=YOUR_USERNAME&repo=YOUR_REPO`
+      `${window.location.origin}/api/analyze?username=YOUR_USERNAME&repo=YOUR_REPO`,
     );
   }, []);
 
@@ -134,7 +134,7 @@ end
       },
       (err) => {
         console.error("Failed to copy text: ", err);
-      }
+      },
     );
   };
 
@@ -143,14 +143,14 @@ end
     apiClient === "curl"
       ? "bash"
       : apiClient === "fetch" || apiClient === "axios"
-      ? "javascript"
-      : apiClient === "python"
-      ? "python"
-      : apiClient === "powershell"
-      ? "powershell"
-      : apiClient === "ruby"
-      ? "ruby"
-      : "";
+        ? "javascript"
+        : apiClient === "python"
+          ? "python"
+          : apiClient === "powershell"
+            ? "powershell"
+            : apiClient === "ruby"
+              ? "ruby"
+              : "";
 
   return (
     <Card className="w-full max-w-3xl">

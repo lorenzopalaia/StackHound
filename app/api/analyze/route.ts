@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   if (!username || !repo) {
     return NextResponse.json(
       { error: "Missing username or repo parameter" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 
   // Esegui tutti i parser in parallelo
   const results = await Promise.allSettled(
-    parsers.map((parser) => parser.getDependencies()) // getDependencies deve essere async in TypeScript
+    parsers.map((parser) => parser.getDependencies()), // getDependencies deve essere async in TypeScript
   );
 
   results.forEach((result, index) => {
@@ -55,14 +55,14 @@ export async function GET(request: Request) {
       result.value.forEach((tech) => techStack.add(tech));
     } else {
       console.error(
-        `${parserName} failed for ${username}/${repo}: ${result.reason}`
+        `${parserName} failed for ${username}/${repo}: ${result.reason}`,
       );
     }
   });
 
   if (techStack.size === 0) {
     console.warn(
-      `No tech stack detected for ${username}/${repo}. Check parser logs for errors or unsupported manifest files.`
+      `No tech stack detected for ${username}/${repo}. Check parser logs for errors or unsupported manifest files.`,
     );
   }
 

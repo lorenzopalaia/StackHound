@@ -33,19 +33,19 @@ export const DemoSection = () => {
 
     try {
       const response = await fetch(
-        `/api/analyze?username=${username}&repo=${repo}`
+        `/api/analyze?username=${username}&repo=${repo}`,
       );
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.error || `HTTP error! status: ${response.status}`
+          errorData.error || `HTTP error! status: ${response.status}`,
         );
       }
       const data = await response.json();
       setResult(data);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
+        err instanceof Error ? err.message : "An unknown error occurred",
       );
       console.error("Fetch error:", err);
     } finally {

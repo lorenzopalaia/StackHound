@@ -16,7 +16,7 @@ const GitHub = () => (
 
 export const Header = () => {
   return (
-    <header className="container mx-auto p-4 flex items-center justify-between">
+    <header className="sticky top-0 z-10 bg-background container mx-auto p-4 flex items-center justify-between">
       <h1 className="text-2xl font-bold">🐶 StackHound</h1>
       <nav>
         <Link href="https://github.com/lorenzopalaia/stackhound">

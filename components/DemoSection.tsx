@@ -82,7 +82,7 @@ export const DemoSection = () => {
   return (
     <Card className="w-full max-w-3xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold">StackHound Demo 🐶</CardTitle>
+        <CardTitle className="text-3xl font-bold">StackHound Demo</CardTitle>
         <CardDescription className="text-md">
           Enter a GitHub username and repository to analyze the tech stack.
           Provide a token for private repositories.

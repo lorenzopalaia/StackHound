@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import React from "react";
 
@@ -17,7 +18,15 @@ const GitHub = () => (
 export const Header = () => {
   return (
     <header className="sticky top-0 z-10 bg-background container mx-auto p-4 flex items-center justify-between">
-      <h1 className="text-2xl font-bold">🐶 StackHound</h1>
+      <div className="flex gap-2 items-center">
+        <Image
+          src="/favicon.png"
+          alt="StackHound Logo"
+          width={32}
+          height={32}
+        />
+        <h1 className="text-2xl font-bold">StackHound</h1>
+      </div>
       <nav>
         <Link
           href="https://github.com/lorenzopalaia/stackhound"

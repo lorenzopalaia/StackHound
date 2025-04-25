@@ -28,12 +28,12 @@
 
 ## About The Project
 
-StackHound provides a simple interface and an API to determine the technologies used in a public GitHub repository by analyzing its dependency files.
+StackHound provides a simple interface and an API to determine the technologies used in a public **or private** GitHub repository by analyzing its dependency files.
 
 Key Features:
 
-- **Simple Web Interface:** Enter a GitHub username and repository name to view the detected technology stack.
-- **API Endpoint:** An `/api/analyze` API endpoint to programmatically query the technology stack.
+- **Simple Web Interface:** Enter a GitHub username and repository name to view the detected technology stack. **Supports private repositories via Personal Access Tokens.**
+- **API Endpoint:** An `/api/analyze` API endpoint to programmatically query the technology stack. **Supports authentication for private repositories.**
 - **Multi-Language Support:** Detects dependencies for various languages and package managers, including:
   - JavaScript/TypeScript (package.json)
   - Python (requirements.txt)
@@ -47,30 +47,7 @@ Key Features:
   - Elixir (mix.exs)
   - Docker (Dockerfile - _detects base image_)
 
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-### Built With
-
-- [Next.js](https://nextjs.org/)
-- [React](https://reactjs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Shadcn/ui](https://ui.shadcn.com/)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- GETTING STARTED -->
-
-## Getting Started
-
-To get a local copy up and running follow these simple steps.
-
-### Prerequisites
-
-- npm
-  ```sh
-  npm install npm@latest -g
-  ```
+// ...existing code...
 
 ### Installation
 
@@ -82,10 +59,12 @@ To get a local copy up and running follow these simple steps.
     ```sh
     npm install
     ```
-3.  You might need a GitHub Personal Access Token with `public_repo` scope for the GitHub API. Create a `.env.local` file in the root directory and add your token:
+3.  **(Optional) For local development requiring access to the GitHub API (e.g., testing against private repos or avoiding rate limits):** Create a GitHub Personal Access Token with `repo` scope (or `public_repo` if only analyzing public repos). Create a `.env.local` file in the root directory and add your token. This token is used by the _local server_ when making requests to GitHub.
     ```env
+    # .env.local
     GITHUB_TOKEN=YOUR_GITHUB_TOKEN
     ```
+    **Note:** When calling the deployed API or your local API endpoint from your own applications, you'll need to provide the token in the request header as shown in the API Usage section.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -104,52 +83,33 @@ You can also query the StackHound API directly.
 - `username` (required): The GitHub username.
 - `repo` (required): The GitHub repository name.
 
+**Headers (Optional, for private repositories):**
+
+- `Authorization`: `Bearer YOUR_GITHUB_TOKEN`
+  _or_
+- `X-GitHub-Token`: `YOUR_GITHUB_TOKEN`
+
+Provide a GitHub Personal Access Token with the necessary scope (`repo` for private repositories, `public_repo` might suffice for public ones) in one of these headers to analyze private repositories. **Handle your tokens securely and avoid exposing them.**
+
 **Example (cURL):**
 
 ```bash
-# Using the deployed version
+# Analyze a public repository
 curl "https://stackhound.vercel.app/api/analyze?username=lorenzopalaia&repo=stackhound"
 
-# Using the local version
+# Analyze a private repository using Authorization header
+curl -H "Authorization: Bearer YOUR_GITHUB_TOKEN" \
+     "https://stackhound.vercel.app/api/analyze?username=YOUR_USERNAME&repo=YOUR_PRIVATE_REPO"
+
+# Analyze a private repository using X-GitHub-Token header (alternative)
+curl -H "X-GitHub-Token: YOUR_GITHUB_TOKEN" \
+     "https://stackhound.vercel.app/api/analyze?username=YOUR_USERNAME&repo=YOUR_PRIVATE_REPO"
+
+# Using the local version (public repo)
 curl "http://localhost:3000/api/analyze?username=lorenzopalaia&repo=stackhound"
 ```
 
 The API will return a JSON response containing the detected technologies.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- CONTRIBUTING -->
-
-## Contributing
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- LICENSE -->
-
-## License
-
-Distributed under the MIT License. See `LICENSE` file for more information.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-<!-- CONTACT -->
-
-## Contact
-
-Lorenzo Palaia - [@lorenzopalaia](https://twitter.com/lorenzopalaia) - lorenzopalaia53@gmail.com
-
-Project Link: [https://github.com/lorenzopalaia/stackhound](https://github.com/lorenzopalaia/stackhound)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

@@ -12,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Button } from "@/components/ui/button";
-import { Clipboard, Check } from "lucide-react";
+import { Clipboard, Check, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const ApiUsageSection = () => {
   const [apiClient, setApiClient] = useState("curl");
@@ -20,104 +21,163 @@ export const ApiUsageSection = () => {
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
-    setApiUrlBase(
-      `${window.location.origin}/api/analyze?username=YOUR_USERNAME&repo=YOUR_REPO`,
-    );
+    if (typeof window !== "undefined") {
+      setApiUrlBase(
+        `${window.location.origin}/api/analyze?username=YOUR_USERNAME&repo=YOUR_REPO`,
+      );
+    }
   }, []);
 
   const getApiCodeSnippet = () => {
     if (!apiUrlBase) {
       return "Loading API URL...";
     }
+    const tokenPlaceholder = "YOUR_GITHUB_TOKEN";
+
     switch (apiClient) {
       case "curl":
-        return `curl "${apiUrlBase}"`;
+        return `# For public repos:
+curl "${apiUrlBase}"
+
+# For private repos (replace ${tokenPlaceholder}):
+curl -H "Authorization: Bearer ${tokenPlaceholder}" "${apiUrlBase}"
+# or alternatively:
+curl -H "X-GitHub-Token: ${tokenPlaceholder}" "${apiUrlBase}"`;
+
       case "fetch":
-        return `fetch("${apiUrlBase}")
+        return `const url = "${apiUrlBase}";
+const token = "${tokenPlaceholder}"; 
+
+const headers = {
+  'Content-Type': 'application/json',
+};
+
+fetch(url, { headers })
   .then(response => {
-  if (!response.ok) {
-    throw new Error('Network response was not ok ' + response.statusText);
-  }
-  return response.json();
+    if (!response.ok) {
+      return response.text().then(text => { 
+        throw new Error(\`HTTP error! status: \${response.status}, message: \${text}\`);
+      });
+    }
+    return response.json();
   })
   .then(data => {
-  console.log(data);
-  
+    console.log(data);    
   })
   .catch(error => {
-  console.error('There has been a problem with your fetch operation:', error);
+    console.error('Fetch error:', error);
   });`;
+
       case "axios":
-        return `import axios from 'axios';
-import { AxiosError } from 'axios';
+        return `import axios, { AxiosError } from 'axios';
 
 const apiUrl = "${apiUrlBase}";
+const token = "${tokenPlaceholder}"; 
 
-axios.get(apiUrl)
+const config = {
+  headers: {}
+};
+
+axios.get(apiUrl, config)
   .then(response => {
-  console.log(response.data);
-  
+    console.log(response.data);
   })
   .catch((error: AxiosError) => {
-  if (error.response) {
-    console.error('Error response data:', error.response.data);
-    console.error('Error response status:', error.response.status);
-  } else if (error.request) {
-    console.error('Error request:', error.request);
-  } else {
-    console.error('Error message:', error.message);
-  }
+    if (error.response) {
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+    } else if (error.request) {
+      console.error('Error request:', error.request);
+    } else {
+      console.error('Error message:', error.message);
+    }
   });`;
+
       case "python":
         return `import requests
 import json
 
 url = "${apiUrlBase}"
+token = "${tokenPlaceholder}" # Replace with your actual token for private repos
+
+headers = {
+    # Uncomment the next line and add your token for private repos
+    # 'Authorization': f'Bearer {token}',
+    # 'X-GitHub-Token': token, # Alternative header
+}
 
 try:
-  response = requests.get(url)
-  response.raise_for_status() # Raises an HTTPError for bad responses (4XX or 5XX)
-  data = response.json()
-  print(json.dumps(data, indent=2))
-  # data will be like: {'techStack': ['React', 'TypeScript', ...]}
-except requests.exceptions.RequestException as e:
-  print(f"Error fetching data: {e}")
+    response = requests.get(url, headers=headers)
+    response.raise_for_status() # Raises HTTPError for bad responses (4XX or 5XX)
+    data = response.json()
+    print(json.dumps(data, indent=2))
+    # data will be like: {'techStack': ['React', 'TypeScript', ...]}
+except requests.exceptions.HTTPError as http_err:
+    print(f"HTTP error occurred: {http_err} - {response.text}")
+except requests.exceptions.RequestException as req_err:
+    print(f"Request error occurred: {req_err}")
 except json.JSONDecodeError:
-  print("Error decoding JSON response")
+    print(f"Error decoding JSON response: {response.text}")
 `;
+
       case "powershell":
-        return `try {
-  $response = Invoke-RestMethod -Uri "${apiUrlBase}" -Method Get
-  # $response will contain the parsed JSON object
-  Write-Host ($response | ConvertTo-Json -Depth 5)
+        return `$url = "${apiUrlBase}"
+$token = "${tokenPlaceholder}" # Replace with your actual token for private repos
+
+$headers = @{
+    # Uncomment the next line and add your token for private repos
+    # "Authorization" = "Bearer $token"
+    # "X-GitHub-Token" = $token # Alternative header
+}
+
+try {
+    $response = Invoke-RestMethod -Uri $url -Method Get -Headers $headers
+    # $response will contain the parsed JSON object
+    Write-Host ($response | ConvertTo-Json -Depth 5)
 } catch {
-  Write-Error "Error fetching data: $_"
-  if ($_.Exception.Response) {
-    $streamReader = [System.IO.StreamReader]::new($_.Exception.Response.GetResponseStream())
-    $errorBody = $streamReader.ReadToEnd()
-    $streamReader.Close()
-    Write-Error "Error body: $errorBody"
-  }
+    Write-Error "Error fetching data: $_"
+    if ($_.Exception.Response) {
+        try {
+            $streamReader = [System.IO.StreamReader]::new($_.Exception.Response.GetResponseStream())
+            $errorBody = $streamReader.ReadToEnd()
+            $streamReader.Close()
+            Write-Error "Error status: $($_.Exception.Response.StatusCode)"
+            Write-Error "Error body: $errorBody"
+        } catch {
+            Write-Error "Could not read error response body."
+        }
+    }
 }`;
+
       case "ruby":
         return `require 'net/http'
 require 'json'
 require 'uri'
 
 url = URI("${apiUrlBase}")
+token = "${tokenPlaceholder}" # Replace with your actual token for private repos
+
+http = Net::HTTP.new(url.host, url.port)
+http.use_ssl = (url.scheme == 'https')
+
+request = Net::HTTP::Get.new(url)
+# Uncomment the next line and add your token for private repos
+# request["Authorization"] = "Bearer \#{token}"
+# request["X-GitHub-Token"] = token # Alternative header
 
 begin
-  response = Net::HTTP.get_response(url)
-  response.value # Raises an error for non-2xx responses
+  response = http.request(request)
 
-  data = JSON.parse(response.body)
-  puts JSON.pretty_generate(data)
-  # data will be like: {"techStack"=>["React", "TypeScript", ...]}
-rescue StandardError => e
-  puts "Error fetching data: #{e.message}"
-  if e.respond_to?(:response) && e.response
-  puts "Response body: #{e.response.body}"
+  if response.is_a?(Net::HTTPSuccess)
+    data = JSON.parse(response.body)
+    puts JSON.pretty_generate(data)
+    # data will be like: {"techStack"=>["React", "TypeScript", ...]}
+  else
+    puts "HTTP Error: \#{response.code} \#{response.message}"
+    puts "Response body: \#{response.body}"
   end
+rescue StandardError => e
+  puts "Error fetching data: \#{e.message}"
 end
 `;
       default:
@@ -159,7 +219,7 @@ end
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          You can also query the StackHound API directly. The endpoint{" "}
+          You can query the StackHound API directly. The endpoint{" "}
           <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
             /api/analyze
           </code>{" "}
@@ -182,9 +242,31 @@ end
           <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
             requirements.txt
           </code>
-          , etc.) from the public GitHub repository and returns the detected
+          , etc.) from the GitHub repository and returns the detected
           technologies.
         </p>
+
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Private Repositories</AlertTitle>
+          <AlertDescription className="inline">
+            To analyze private repositories, you need to provide a GitHub
+            Personal Access Token (PAT) with the appropriate scope (e.g.,{" "}
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
+              repo
+            </code>
+            ) in the request header. Use either{" "}
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
+              Authorization: Bearer YOUR_TOKEN
+            </code>{" "}
+            or{" "}
+            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
+              X-GitHub-Token: YOUR_TOKEN
+            </code>
+            . See the code examples below.{" "}
+            <strong>Handle your tokens securely.</strong>
+          </AlertDescription>
+        </Alert>
 
         <div className="space-y-2">
           <Label htmlFor="api-client-select" className="text-sm font-medium">
@@ -207,8 +289,9 @@ end
 
         <div className="relative">
           <Button
+            variant="ghost"
             size="icon"
-            className="absolute right-2 top-2 h-6 w-6 cursor-pointer"
+            className="absolute right-2 top-2 z-10 h-7 w-7 cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={handleCopy}
             aria-label="Copy code snippet"
           >
@@ -224,12 +307,16 @@ end
           Remember to replace{" "}
           <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
             YOUR_USERNAME
-          </code>{" "}
-          and{" "}
+          </code>
+          ,{" "}
           <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
             YOUR_REPO
           </code>
-          .
+          , and{" "}
+          <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-semibold">
+            YOUR_GITHUB_TOKEN
+          </code>{" "}
+          where applicable.
         </p>
       </CardContent>
     </Card>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -12,6 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface AnalysisResult {
   techStack: string[];
@@ -20,6 +22,7 @@ interface AnalysisResult {
 export const DemoSection = () => {
   const [username, setUsername] = useState("");
   const [repo, setRepo] = useState("");
+  const [token, setToken] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,11 +35,27 @@ export const DemoSection = () => {
     setError(null);
 
     try {
+      const headers: HeadersInit = {};
+      if (token) {
+        headers["X-GitHub-Token"] = token;
+      }
+
       const response = await fetch(
         `/api/analyze?username=${username}&repo=${repo}`,
+        { headers },
       );
+
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error("Error parsing error response:", e);
+          throw new Error(
+            `HTTP error! status: ${response.status} ${response.statusText}`,
+          );
+        }
+
         throw new Error(
           errorData.error || `HTTP error! status: ${response.status}`,
         );
@@ -53,12 +72,20 @@ export const DemoSection = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
     <Card className="w-full max-w-3xl">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold">StackHound Demo 🐶</CardTitle>
         <CardDescription className="text-md">
-          Enter a GitHub username and repository to analyze the tech stack used.
+          Enter a GitHub username and repository to analyze the tech stack.
+          Provide a token for private repositories.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -70,20 +97,49 @@ export const DemoSection = () => {
             placeholder="GitHub Username"
             disabled={isLoading}
             aria-label="GitHub Username"
+            onKeyDown={handleKeyDown}
           />
+
           <Input
             id="repo"
             value={repo}
             onChange={(e) => setRepo(e.target.value)}
             placeholder="Repository Name"
             disabled={isLoading}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSubmit();
-              }
-            }}
             aria-label="GitHub Repository"
+            onKeyDown={handleKeyDown}
           />
+
+          <div className="space-y-1 pt-2">
+            <Label htmlFor="token" className="text-sm font-medium">
+              GitHub Token (Optional, for private repos)
+            </Label>
+            <Input
+              id="token"
+              type="password"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="ghp_..."
+              disabled={isLoading}
+              aria-label="GitHub Personal Access Token"
+              className="font-mono"
+              onKeyDown={handleKeyDown}
+            />
+            <p className="text-xs text-muted-foreground">
+              Requires a{" "}
+              <a
+                href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                Personal Access Token
+              </a>{" "}
+              with the <code className="text-xs font-semibold">repo</code> scope
+              (or <code className="text-xs font-semibold">public_repo</code> for
+              public repos only). Manage your tokens securely.
+            </p>
+          </div>
         </div>
 
         <Button
@@ -96,14 +152,16 @@ export const DemoSection = () => {
         </Button>
 
         {error && (
-          <div className="text-center text-sm text-red-500">
-            <p>Error: {error}</p>
-          </div>
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {result && !isLoading && (
           <div className="text-center">
-            <h3 className="mb-2 text-lg font-semibold">Tech Stack Used:</h3>
+            <h3 className="mb-2 text-lg font-semibold">Detected Tech Stack:</h3>
             {result.techStack.length > 0 ? (
               <div className="flex flex-wrap justify-center gap-2">
                 {result.techStack.map((tech: string, index: number) => (
@@ -112,8 +170,9 @@ export const DemoSection = () => {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No specific tech stack detected or repository might be
-                empty/inaccessible.
+                No specific tech stack detected, or the repository might be
+                empty/inaccessible. Check the repo name and token if it&apos;s
+                private.
               </p>
             )}
           </div>

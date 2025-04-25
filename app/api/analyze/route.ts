@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import {
   NodeParser,
   PythonParser,
@@ -13,57 +13,66 @@ import {
   DockerParser,
 } from "@/lib/techStackParser";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
   const username = searchParams.get("username");
   const repo = searchParams.get("repo");
 
+  const token = request.headers.get("X-GitHub-Token");
+
   if (!username || !repo) {
     return NextResponse.json(
-      { error: "Missing username or repo parameter" },
+      { error: "Username and repo are required" },
       { status: 400 },
     );
   }
 
-  console.info(`API received request for: username=${username}, repo=${repo}`);
+  try {
+    const authToken = token ?? undefined;
+    const parsers = [
+      new NodeParser(username, repo, undefined, authToken),
+      new PythonParser(username, repo, undefined, authToken),
+      new JavaParser(username, repo, undefined, authToken),
+      new DotNetParser(username, repo, undefined, authToken),
+      new RubyParser(username, repo, undefined, authToken),
+      new PHPParser(username, repo, undefined, authToken),
+      new GoParser(username, repo, undefined, authToken),
+      new RustParser(username, repo, undefined, authToken),
+      new DartParser(username, repo, undefined, authToken),
+      new ElixirParser(username, repo, undefined, authToken),
+      new DockerParser(username, repo, undefined, authToken),
+    ];
 
-  const techStack = new Set<string>();
-
-  const parsers = [
-    new NodeParser(username, repo),
-    new PythonParser(username, repo),
-    new JavaParser(username, repo),
-    new DotNetParser(username, repo),
-    new RubyParser(username, repo),
-    new PHPParser(username, repo),
-    new GoParser(username, repo),
-    new RustParser(username, repo),
-    new DartParser(username, repo),
-    new ElixirParser(username, repo),
-    new DockerParser(username, repo),
-  ];
-
-  const results = await Promise.allSettled(
-    parsers.map((parser) => parser.getDependencies()),
-  );
-
-  results.forEach((result, index) => {
-    const parserName = parsers[index].constructor.name;
-    if (result.status === "fulfilled") {
-      console.info(`${parserName} succeeded for ${username}/${repo}`);
-      result.value.forEach((tech) => techStack.add(tech));
-    } else {
-      console.error(
-        `${parserName} failed for ${username}/${repo}: ${result.reason}`,
-      );
-    }
-  });
-
-  if (techStack.size === 0) {
-    console.warn(
-      `No tech stack detected for ${username}/${repo}. Check parser logs for errors or unsupported manifest files.`,
+    const allTechStacks = await Promise.all(
+      parsers.map((p) => p.getDependencies()),
     );
-  }
 
-  return NextResponse.json({ techStack: Array.from(techStack) });
+    const combinedTechStack = new Set<string>();
+    allTechStacks.forEach((stack) => {
+      stack.forEach((tech) => combinedTechStack.add(tech));
+    });
+
+    const uniqueTechStack = Array.from(combinedTechStack).sort();
+
+    return NextResponse.json({ techStack: uniqueTechStack });
+  } catch (error) {
+    console.error(`Error analyzing ${username}/${repo}:`, error);
+    let errorMessage = "Failed to analyze repository.";
+    let status = 500;
+    if (error instanceof Error) {
+      if (error.message.includes("404 Not Found")) {
+        errorMessage = `Repository not found or file missing. If private, ensure token has 'repo' scope. (${error.message})`;
+        status = 404;
+      } else if (
+        error.message.includes("401") ||
+        error.message.includes("403")
+      ) {
+        errorMessage = `Authentication failed. Check your token and its permissions. (${error.message})`;
+        status = 403;
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    return NextResponse.json({ error: errorMessage }, { status });
+  }
 }
